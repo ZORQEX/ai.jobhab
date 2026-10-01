@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Сохранённые вакансии — AI JobHub</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%236c8cff'/><text y='68' x='50' text-anchor='middle' font-size='46' font-family='Arial' font-weight='bold' fill='white'>AI</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <header id="app-header" class="site-header"></header>
+
+  <main id="app-main">
+    <div class="container page">
+      <div class="page-head">
+        <h1>Сохранённые вакансии</h1>
+        <p class="muted mb-0">Отберите подходящие и отправьте отклики одной кнопкой — они уйдут в историю личного кабинета.</p>
+      </div>
+
+      <div class="layout-detail">
+        <section>
+          <div class="row-between mb-16">
+            <label class="checkbox"><input type="checkbox" id="select-all"> Выбрать все</label>
+            <div class="row">
+              <select id="sort" class="select btn-sm" style="width:auto;padding:6px 30px 6px 11px">
+                <option value="new">Сначала новые</option>
+                <option value="match">По соответствию</option>
+                <option value="salary">По зарплате</option>
+              </select>
+              <button class="btn btn-sm btn-danger" type="button" id="clear-all">Очистить список</button>
+            </div>
+          </div>
+          <div id="saved-list" class="job-grid"></div>
+        </section>
+
+        <aside class="detail-aside">
+          <div class="card sticky" id="summary"></div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="src/pages/saved.js"></script>
+</body>
+</html>

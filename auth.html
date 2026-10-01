@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Вход и регистрация — AI JobHub</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%236c8cff'/><text y='68' x='50' text-anchor='middle' font-size='46' font-family='Arial' font-weight='bold' fill='white'>AI</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <header id="app-header" class="site-header"></header>
+
+  <main id="app-main">
+    <div class="container page">
+      <div style="max-width:440px;margin:0 auto">
+
+        <div class="page-head center">
+          <h1 id="auth-title">Вход в аккаунт</h1>
+          <p class="muted" id="auth-subtitle">Отклики, сохранённые вакансии и AI-анализ доступны после входа</p>
+        </div>
+
+        <div class="card">
+          <div class="tabs">
+            <button class="tab active" type="button" data-mode="login">Вход</button>
+            <button class="tab" type="button" data-mode="register">Регистрация</button>
+          </div>
+
+          <div id="auth-message"></div>
+
+          <form id="auth-form" novalidate>
+            <div class="field" id="name-field" hidden>
+              <label for="name">Имя и фамилия</label>
+              <input id="name" class="input" type="text" autocomplete="name" placeholder="Тимур Абдрахманов">
+            </div>
+            <div class="field">
+              <label for="email">Электронная почта</label>
+              <input id="email" class="input" type="email" autocomplete="email" placeholder="you@example.com" required>
+            </div>
+            <div class="field">
+              <label for="password">Пароль</label>
+              <input id="password" class="input" type="password" autocomplete="current-password" placeholder="Минимум 6 символов" required>
+            </div>
+            <button class="btn btn-primary btn-block btn-lg" type="submit" id="submit-btn">Войти</button>
+          </form>
+
+          <div class="row-between mt-16">
+            <button class="btn btn-ghost btn-sm" type="button" id="forgot-btn">Забыли пароль?</button>
+            <span class="faint" id="switch-hint"></span>
+          </div>
+        </div>
+
+        <div class="card" id="demo-accounts"></div>
+
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="src/pages/auth.js"></script>
+</body>
+</html>

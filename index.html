@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI JobHub — поиск работы с AI-подбором</title>
+  <meta name="description" content="Каталог IT-вакансий с оценкой соответствия резюме: поиск, фильтры, сохранённые вакансии и отклики.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%236c8cff'/><text y='68' x='50' text-anchor='middle' font-size='46' font-family='Arial' font-weight='bold' fill='white'>AI</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <header id="app-header" class="site-header"></header>
+
+  <main id="app-main">
+    <div class="container page">
+
+      <section class="hero">
+        <h1>Работа в IT с AI-подбором</h1>
+        <p class="muted mb-0">Каталог вакансий, который сам считает, насколько вы подходите, и показывает, чего не хватает в резюме.</p>
+        <div class="search-bar">
+          <input id="search" class="input" type="search" placeholder="Должность, компания или навык — например, React" autocomplete="off">
+          <select id="sort" class="select" style="max-width:230px" aria-label="Сортировка"></select>
+        </div>
+        <div id="quick-filters" class="chip-list mt-16"></div>
+      </section>
+
+      <section id="ai-picks" class="mb-16"></section>
+
+      <div class="layout-sidebar">
+        <aside class="card sticky" id="filters" aria-label="Фильтры">
+          <div class="card-title">
+            <h3>Фильтры</h3>
+            <button class="btn btn-ghost btn-sm" type="button" id="reset-filters">Сбросить</button>
+          </div>
+
+          <div class="field">
+            <label for="f-category">Направление</label>
+            <select id="f-category" class="select"></select>
+          </div>
+          <div class="field">
+            <label for="f-city">Город</label>
+            <select id="f-city" class="select"></select>
+          </div>
+          <div class="field">
+            <label for="f-level">Грейд</label>
+            <select id="f-level" class="select"></select>
+          </div>
+          <div class="field">
+            <label for="f-employment">Занятость</label>
+            <select id="f-employment" class="select"></select>
+          </div>
+          <div class="field">
+            <label for="f-salary">Зарплата от, ₸</label>
+            <input id="f-salary" class="input" type="number" min="0" step="50000" placeholder="например, 600000">
+          </div>
+          <label class="checkbox">
+            <input type="checkbox" id="f-remote"> Только удалённая работа
+          </label>
+          <p class="faint mt-16 mb-0" id="filters-hint"></p>
+        </aside>
+
+        <section>
+          <div class="row-between mb-16">
+            <div id="results-info" class="faint"></div>
+            <div id="live-indicator"></div>
+          </div>
+          <div id="job-list" class="job-grid"></div>
+          <div id="load-more-wrap" class="mt-16"></div>
+        </section>
+      </div>
+
+    </div>
+  </main>
+
+  <script type="module" src="src/pages/catalog.js"></script>
+</body>
+</html>

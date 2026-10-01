@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Вакансия — AI JobHub</title>
+  <!-- Заполняется из документа вакансии в src/pages/job.js, чтобы ссылка
+       разворачивалась в мессенджерах названием вакансии, а не общим текстом. -->
+  <meta name="description" content="Вакансия на AI JobHub: требования, условия и оценка соответствия вашему резюме.">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="AI JobHub">
+  <meta property="og:title" content="Вакансия — AI JobHub">
+  <meta property="og:description" content="Требования, условия и оценка соответствия вашему резюме.">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%236c8cff'/><text y='68' x='50' text-anchor='middle' font-size='46' font-family='Arial' font-weight='bold' fill='white'>AI</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <header id="app-header" class="site-header"></header>
+
+  <main id="app-main">
+    <div class="container page">
+      <p class="faint"><a href="index.html">← Все вакансии</a></p>
+
+      <div class="layout-detail" id="job-layout">
+        <section id="job-main">
+          <div class="skeleton" style="height:180px"></div>
+        </section>
+
+        <aside class="detail-aside" id="job-aside">
+          <div class="skeleton" style="height:280px"></div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="src/pages/job.js"></script>
+</body>
+</html>

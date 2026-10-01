@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Админ-панель — AI JobHub</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%236c8cff'/><text y='68' x='50' text-anchor='middle' font-size='46' font-family='Arial' font-weight='bold' fill='white'>AI</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <header id="app-header" class="site-header"></header>
+
+  <main id="app-main">
+    <div class="container page">
+      <div class="row-between page-head">
+        <div>
+          <h1>Админ-панель</h1>
+          <p class="muted mb-0">Управление вакансиями, откликами, пользователями и модерацией</p>
+        </div>
+        <div class="row" id="admin-actions"></div>
+      </div>
+
+      <div id="admin-stats" class="stat-grid mb-16"></div>
+
+      <div class="tabs" id="tabs">
+        <button class="tab active" type="button" data-tab="jobs">Вакансии</button>
+        <button class="tab" type="button" data-tab="applications">Отклики</button>
+        <button class="tab" type="button" data-tab="users">Пользователи</button>
+        <button class="tab" type="button" data-tab="reviews">Модерация</button>
+        <button class="tab" type="button" data-tab="stats">Статистика</button>
+      </div>
+
+      <section id="pane-jobs" class="pane"></section>
+      <section id="pane-applications" class="pane hidden"></section>
+      <section id="pane-users" class="pane hidden"></section>
+      <section id="pane-reviews" class="pane hidden"></section>
+      <section id="pane-stats" class="pane hidden"></section>
+    </div>
+  </main>
+
+  <script type="module" src="src/pages/admin.js"></script>
+</body>
+</html>
