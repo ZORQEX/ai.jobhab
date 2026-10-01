@@ -1,0 +1,19 @@
+{
+  "name": "ai-jobhub-functions",
+  "description": "Серверная часть AI JobHub: счётчики, роли, агрегаты, уведомления",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "scripts": {
+    "serve": "firebase emulators:start --only functions,firestore",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.1",
+    "firebase-functions": "^6.1.1"
+  }
+}
