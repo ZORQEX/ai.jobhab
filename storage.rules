@@ -1,0 +1,65 @@
+rules_version = '2';
+
+// ============================================================================
+//  AI JobHub — правила безопасности Firebase Storage
+//
+//  Принцип тот же, что и в firestore.rules: по умолчанию запрещено всё,
+//  доступ открывается точечно и только на конкретные пути.
+//
+//  Два дерева файлов:
+//    avatars/{uid}/avatar.jpg — аватар пользователя, пишет только он сам
+//    logos/{jobId}/logo.jpg   — логотип компании, пишет только администратор
+//
+//  Читать можно всем: аватар автора отзыва и логотип компании видны в каталоге
+//  неавторизованному посетителю, а ссылка вида getDownloadURL() и так содержит
+//  неугадываемый токен.
+// ============================================================================
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Роль берётся из custom claim, который выставляет Cloud Function
+    // syncAdminClaim (functions/index.js). В Storage нет get() по Firestore,
+    // поэтому claim здесь — единственный способ узнать роль.
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.admin == true;
+    }
+
+    // Общая проверка загружаемого файла: только картинка и не больше 1 МБ.
+    // Клиент уменьшает изображение до 256×256 JPEG (src/core/image.js),
+    // это ~40 КБ — лимит с большим запасом и страхует от загрузки оригинала
+    // в обход интерфейса.
+    function isSmallImage() {
+      return request.resource.size <= 1 * 1024 * 1024
+        && request.resource.contentType.matches('image/(jpeg|png|webp|gif)');
+    }
+
+    // ---------- Аватары пользователей ----------
+    match /avatars/{userId}/{fileName} {
+      allow read: if true;
+
+      // Загрузить и удалить свой аватар может только сам пользователь.
+      // Админ может удалить чужой — на случай неподобающей картинки.
+      allow write: if isSignedIn() && request.auth.uid == userId && isSmallImage();
+      allow delete: if (isSignedIn() && request.auth.uid == userId) || isAdmin();
+    }
+
+    // ---------- Логотипы компаний ----------
+    // delete вынесен отдельной строкой: при удалении request.resource пустой,
+    // и проверка размера/типа в этом случае не применима.
+    match /logos/{jobId}/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin() && isSmallImage();
+      allow delete: if isAdmin();
+    }
+
+    // ---------- Всё остальное запрещено ----------
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,210 @@
+rules_version = '2';
+
+// ============================================================================
+//  AI JobHub — правила безопасности Firestore
+//  Роли: user (по умолчанию) и admin.
+//  Принцип: по умолчанию всё запрещено, доступ открывается точечно.
+//
+//  Важно про list: правило запроса проверяется ОДИН РАЗ против самого запроса,
+//  а не против каждого документа выдачи. Поэтому условие вида
+//  `resource.data.status == 'open'` не «фильтрует» результат, а требует, чтобы
+//  клиент сам сузил запрос — иначе весь запрос падает с permission-denied.
+//  Именно так закрыты чужие отклики и скрытые отзывы.
+// ============================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- helpers ----------
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function uid() {
+      return request.auth.uid;
+    }
+
+    function isSelf(userId) {
+      return isSignedIn() && uid() == userId;
+    }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(uid())).data;
+    }
+
+    // Сначала проверяется custom claim (бесплатно, приходит в токене), и только
+    // если его нет — документ users/{uid} через get() (одно чтение на запрос).
+    // Claim выставляет Cloud Function syncAdminClaim из functions/index.js.
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.admin == true
+        || (exists(/databases/$(database)/documents/users/$(uid())) && userDoc().role == 'admin')
+      );
+    }
+
+    function changedKeys() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    // Пришедшие поля — ровно из разрешённого набора
+    function onlyFields(allowed) {
+      return changedKeys().hasOnly(allowed);
+    }
+
+    function isValidString(value, maxLen) {
+      return value is string && value.size() > 0 && value.size() <= maxLen;
+    }
+
+    // ---------- 1. Пользователи ----------
+    // Профиль, роль, резюме, настройки.
+    match /users/{userId} {
+
+      allow get: if isSelf(userId) || isAdmin();
+      allow list: if isAdmin();
+
+      // Регистрация: документ создаёт только сам пользователь и только с ролью 'user'.
+      // Повысить себя до админа через клиент невозможно.
+      allow create: if isSelf(userId)
+        && request.resource.data.role == 'user'
+        && request.resource.data.email == request.auth.token.email
+        && isValidString(request.resource.data.displayName, 80);
+
+      // Пользователь правит свой профиль, но не роль и не блокировку.
+      allow update: if (isSelf(userId)
+                        && request.resource.data.role == resource.data.role
+                        && request.resource.data.disabled == resource.data.disabled)
+                    || isAdmin();
+
+      // Удалять профили может только админ.
+      allow delete: if isAdmin();
+    }
+
+    // ---------- 2. Основные сущности: вакансии ----------
+    match /jobs/{jobId} {
+
+      // Открытые вакансии видны всем; черновики и закрытые — только админу.
+      // Для list это означает: запрос обязан содержать where('status','==','open').
+      allow get, list: if resource.data.status == 'open' || isAdmin();
+
+      // CRUD вакансий — только админ.
+      allow create: if isAdmin()
+        && isValidString(request.resource.data.title, 140)
+        && request.resource.data.status in ['open', 'closed', 'draft']
+        && request.resource.data.applicationsCount == 0;
+
+      allow delete: if isAdmin();
+
+      // Админ меняет что угодно. Авторизованный пользователь — только счётчики
+      // и только шагом ±1, чтобы нельзя было накрутить число откликов
+      // (applicationsCount инкрементится вместе с созданием отклика).
+      // Когда развёрнуты Cloud Functions из functions/index.js, вторую ветку
+      // можно убрать целиком: счётчики будет вести сервер.
+      // Значения передаются в функцию явно: обращение к полю по переменному
+      // ключу (data[field]) в правилах работает не везде, а такой вариант —
+      // обычные аргументы, и он предсказуем.
+      function counterOk(before, after) {
+        return after == before + 1 || after == before - 1;
+      }
+
+      function untouched(field) {
+        return !changedKeys().hasAny([field]);
+      }
+
+      allow update: if isAdmin()
+        || (isSignedIn()
+            && onlyFields(['viewsCount', 'applicationsCount', 'savesCount'])
+            && (untouched('viewsCount')
+                || counterOk(resource.data.viewsCount, request.resource.data.viewsCount))
+            && (untouched('applicationsCount')
+                || counterOk(resource.data.applicationsCount, request.resource.data.applicationsCount))
+            && (untouched('savesCount')
+                || counterOk(resource.data.savesCount, request.resource.data.savesCount)));
+    }
+
+    // ---------- 3. Действия: отклики (история) ----------
+    match /applications/{appId} {
+
+      // Свои отклики видит автор, все — админ. Запрос без where('userId','==',uid)
+      // обычным пользователем не пройдёт, поэтому чужие письма недоступны.
+      allow get, list: if isSignedIn() && (resource.data.userId == uid() || isAdmin());
+
+      // Откликнуться может только сам пользователь, статус всегда стартует с 'sent'.
+      allow create: if isSignedIn()
+        && request.resource.data.userId == uid()
+        && request.resource.data.status == 'sent'
+        && isValidString(request.resource.data.jobId, 64)
+        && request.resource.data.coverLetter.size() <= 2000
+        && request.resource.data.statusHistory.size() == 1;
+
+      // Пользователь может только отозвать свой отклик и только дописать
+      // одну запись в журнал — переписать историю задним числом нельзя.
+      allow update: if isAdmin()
+        || (isSignedIn()
+            && resource.data.userId == uid()
+            && request.resource.data.status == 'withdrawn'
+            && onlyFields(['status', 'updatedAt', 'statusHistory'])
+            && historyGrewByOne());
+
+      function historyGrewByOne() {
+        return request.resource.data.statusHistory.size() == resource.data.statusHistory.size() + 1
+          && request.resource.data.statusHistory.toSet().hasAll(resource.data.statusHistory.toSet());
+      }
+
+      allow delete: if isAdmin();
+    }
+
+    // ---------- 4. Активные действия: сохранённые вакансии ----------
+    // ID документа — «{uid}_{jobId}». Проверяем и поле userId, и префикс ID:
+    // поле — основная защита, префикс не даёт занять чужой идентификатор.
+    match /saved/{savedId} {
+      allow get, list: if isSignedIn() && resource.data.userId == uid();
+
+      allow create: if isSignedIn()
+        && request.resource.data.userId == uid()
+        && savedId == uid() + '_' + request.resource.data.jobId;
+
+      allow update: if isSignedIn()
+        && resource.data.userId == uid()
+        && request.resource.data.userId == uid();
+
+      allow delete: if isSignedIn() && resource.data.userId == uid();
+    }
+
+    // ---------- 5. Отзывы о работодателях (интерактив + модерация) ----------
+    match /reviews/{reviewId} {
+
+      // Скрытые модератором отзывы доступны только админу — значит, публичный
+      // запрос обязан содержать where('hidden','==',false).
+      allow get, list: if resource.data.hidden == false || isAdmin();
+
+      allow create: if isSignedIn()
+        && request.resource.data.userId == uid()
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5
+        && isValidString(request.resource.data.text, 1500)
+        && request.resource.data.hidden == false;
+
+      // Автор правит текст и оценку; админ модерирует любой (в т.ч. скрывает).
+      allow update: if isAdmin()
+        || (isSignedIn()
+            && resource.data.userId == uid()
+            && request.resource.data.userId == resource.data.userId
+            && onlyFields(['text', 'rating', 'updatedAt']));
+
+      allow delete: if isAdmin() || (isSignedIn() && resource.data.userId == uid());
+    }
+
+    // ---------- 6. Агрегаты для админ-панели ----------
+    // Документ meta/stats пишет только Cloud Function (Admin SDK обходит правила).
+    match /meta/{docId} {
+      allow get: if isAdmin();
+      allow write: if false;
+    }
+
+    // ---------- Всё остальное запрещено ----------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
