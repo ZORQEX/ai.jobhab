@@ -7,8 +7,8 @@
 
 | | |
 |---|---|
-| **Демо** | https://ZORQEX.github.io/ai-jobhub/ |
-| **Репозиторий** | https://github.com/ZORQEX/ai-jobhub |
+| **Демо** | https://ZORQEX.github.io/ai.jobhab/ |
+| **Репозиторий** | https://github.com/ZORQEX/ai.jobhab |
 | **Firebase-проект** | `ai-jobhub`, база в регионе `eur3` |
 | **Схема БД** | [DATABASE.md](DATABASE.md) |
 | **Правила безопасности** | [firestore.rules](firestore.rules) + [storage.rules](storage.rules) + тесты [tests/rules.test.js](tests/rules.test.js) |
@@ -193,7 +193,7 @@ pages/*.js  →  data/backend.js  →  firebase-backend.js  (ключи зада
 Live Server из VS Code, и `npx serve .`.
 
 ```bash
-git clone https://github.com/ZORQEX/ai-jobhub.git
+git clone https://github.com/ZORQEX/ai.jobhab.git
 cd ai-jobhub
 npm install                     # только инструменты разработки
 npm run serve                   # статический сервер на node (tools/serve.js)
