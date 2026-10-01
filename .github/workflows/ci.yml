@@ -1,0 +1,53 @@
+name: CI
+
+# Линтер и тесты движка подбора гоняются на каждый push и pull request.
+# Тесты правил безопасности (npm run test:rules) поднимают эмулятор Firestore
+# и требуют Java — поэтому вынесены в отдельную задачу.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Тесты движка подбора, компонентов и контракта адаптеров
+        run: npm run test:unit
+
+  rules-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - run: npm ci
+
+      - name: Тесты правил безопасности на эмуляторе Firestore
+        run: npx firebase emulators:exec --only firestore --project ai-jobhub-rules-test "node --test tests/rules.test.js"
+
+      - name: Тесты правил безопасности Storage
+        run: npx firebase emulators:exec --only storage --project ai-jobhub-rules-test "node --test tests/storage-rules.test.js"
